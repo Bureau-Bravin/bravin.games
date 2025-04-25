@@ -1,0 +1,17 @@
+{
+  "name": "game-studio-website",
+  "version": "1.0.0",
+  "description": "A custom static site generator for a game studio website.",
+  "main": "src/scripts/build.js",
+  "scripts": {
+    "build": "node src/scripts/build.js",
+    "start": "http-server dist"
+  },
+  "dependencies": {
+    "marked": "^2.1.3",
+    "http-server": "^0.12.3"
+  },
+  "devDependencies": {},
+  "author": "Your Name",
+  "license": "MIT"
+}
