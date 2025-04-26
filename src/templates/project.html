@@ -16,8 +16,24 @@
         <a href="/#games">Games</a>
     </nav>
     <main class="project-content">
-        {{content}}
+        <div class="project-header">
+            {{title_block}}
+            {{release_block}}
+            <div class="store-links">
+                {{store_block}}
+            </div>
+        </div>
+        {{description_block}}
+        {{media_block}}
     </main>
+    <div id="modal" class="modal">
+        <span class="modal-close">&times;</span>
+        <div class="modal-content">
+            <img id="modal-img" src="" alt="">
+            <iframe id="modal-video" src="" frameborder="0" allowfullscreen style="display:none"></iframe>
+        </div>
+    </div>
+    <script src="/assets/modal.js"></script>
     {{footer}}
 </body>
 </html>

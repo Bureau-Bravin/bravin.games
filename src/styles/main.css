@@ -168,6 +168,10 @@ footer {
     text-shadow: 0 0 5px rgba(243, 231, 210, 0.3);
 }
 
+.project iframe {
+    pointer-events: none;
+}
+
 .project-content {
     max-width: 960px;
     margin: 2rem auto;
@@ -214,6 +218,43 @@ footer {
     color: #F3E7D2;
 }
 
+.project-content .release-date {
+    font-size: 1.2rem;
+    color: #F3E7D2;
+    margin-bottom: 2rem;
+    text-shadow: 0 0 5px rgba(243, 231, 210, 0.3);
+}
+
+.project-content .description {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    color: #F3E7D2;
+    margin: 2rem 0;
+    text-shadow: 0 0 5px rgba(243, 231, 210, 0.3);
+}
+
+.project-content .projects-grid {
+    margin-top: 2rem;
+}
+
+.project-content .project iframe {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.media-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    z-index: 2;
+}
+
 .back-link {
     color: white;
     text-decoration: none;
@@ -256,6 +297,93 @@ footer {
 
 .about p {
     text-shadow: 0 0 5px rgba(33, 36, 38, 0.3);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.9);
+}
+
+.modal-content {
+    margin: auto;
+    display: block;
+    width: 90%;
+    max-width: 1200px;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.modal-content img {
+    width: 100%;
+    height: auto;
+}
+
+.modal-content iframe {
+    width: 100%;
+    aspect-ratio: 16/9;
+}
+
+.modal-close {
+    position: absolute;
+    right: 35px;
+    top: 15px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.project-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.project-header h1 {
+    margin-bottom: 1rem;
+}
+
+.store-links {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: center;
+}
+
+.store-links-wrapper {
+    display: flex;
+    gap: 3rem;
+    justify-content: center;
+}
+
+.store-links img {
+    height: 40px;
+    width: auto;
+    padding: 0 10px;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    filter: brightness(0) saturate(100%) invert(45%) sepia(41%) saturate(2189%) hue-rotate(332deg) brightness(95%) contrast(95%);
+}
+
+.store-links p {
+    margin: 0;
+    display: flex;
+    gap: 1rem;
+}
+
+.store-links-wrapper {
+    display: inline-flex;
+    gap: 2rem;
+}
+
+.store-links-wrapper p {
+    margin: 0;
+    display: flex;
+    gap: 1rem;
 }
 
 @media (max-width: 1024px) {

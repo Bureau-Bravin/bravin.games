@@ -73,13 +73,35 @@ function build() {
     const projectsHTML = projectFiles.map(file => {
         const projectContent = fs.readFileSync(path.join(projectDir, file), 'utf-8');
         
-        // Parse frontmatter
-        const frontmatterRegex = /^---\n([\s\S]*?)\n---\n/;
-        const match = projectContent.match(frontmatterRegex);
+        // Remove BOM and normalize line endings
+        const normalizedContent = projectContent.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
+        
+        // Parse frontmatter with more flexible regex
+        const frontmatterRegex = /^---[\r\n]+([\s\S]*?)[\r\n]+---/;
+        const match = normalizedContent.match(frontmatterRegex);
+        
         const frontmatter = match ? match[1].split('\n').reduce((acc, line) => {
-            const [key, value] = line.split(':').map(s => s.trim());
-            if (key && value) {
-                acc[key] = value.replace(/['"]/g, ''); // Remove quotes
+            line = line.trim();
+            
+            if (!line) return acc;
+            
+            if (line.startsWith('-')) {
+                // Handle array items
+                const value = line.slice(1).trim();
+                const lastKey = Object.keys(acc).pop();
+                if (!acc[lastKey]) {
+                    acc[lastKey] = [];
+                }
+                acc[lastKey].push(value);
+            } else {
+                // Handle key-value pairs
+                const colonIndex = line.indexOf(':');
+                if (colonIndex !== -1) {
+                    const key = line.slice(0, colonIndex).trim();
+                    const value = line.slice(colonIndex + 1).trim();
+                    // Remove quotes if they exist
+                    acc[key] = value.replace(/^["'](.*)["']$/, '$1');
+                }
             }
             return acc;
         }, {}) : {};
@@ -88,7 +110,7 @@ function build() {
         return `
             <div class="project">
                 <a href="/projects/${projectName}.html">
-                    <img src="/assets/${frontmatter.title_image || projectName + '.jpg'}" alt="${projectName}">
+                    <img src="/assets/${frontmatter.preview_image}" alt="${projectName}">
                 </a>
             </div>
         `;
@@ -100,14 +122,60 @@ function build() {
     // When generating individual project pages
     projectFiles.forEach(file => {
         const projectContent = fs.readFileSync(path.join(projectDir, file), 'utf-8');
-        const contentWithoutFrontmatter = projectContent.replace(/^---\n[\s\S]*?\n---\n/, '');
-        const projectHTML = markdown.convert(contentWithoutFrontmatter);
+        const normalizedContent = projectContent.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
         
+        // Parse frontmatter
+        const frontmatterRegex = /^---[\r\n]+([\s\S]*?)[\r\n]+---/;
+        const match = normalizedContent.match(frontmatterRegex);
+        const frontmatter = match ? match[1].split('\n').reduce((acc, line) => {
+            line = line.trim();
+            if (!line) return acc;
+            
+            if (line.startsWith('-')) {
+                const value = line.slice(1).trim();
+                const lastKey = Object.keys(acc).pop();
+                if (!acc[lastKey]) {
+                    acc[lastKey] = [];
+                }
+                acc[lastKey].push(value);
+            } else {
+                const colonIndex = line.indexOf(':');
+                if (colonIndex !== -1) {
+                    const key = line.slice(0, colonIndex).trim();
+                    const value = line.slice(colonIndex + 1).trim();
+                    acc[key] = value.replace(/^["'](.*)["']$/, '$1');
+                }
+            }
+            return acc;
+        }, {}) : {};
+
+        // Generate media HTML if media exists
+        const mediaHTML = frontmatter.media ? frontmatter.media.map((url, index) => {
+            if (url.includes('youtube.com')) {
+                return `
+                    <div class="project media-item">
+                        <div class="media-overlay" data-media-type="video" data-media-url="${url.replace('watch?v=', 'embed/')}"></div>
+                        <iframe src="${url.replace('watch?v=', 'embed/')}" frameborder="0" allowfullscreen></iframe>
+                    </div>`;
+            }
+            return `
+                <div class="project media-item">
+                    <div class="media-overlay" data-media-type="image" data-media-url="/assets/${url}"></div>
+                    <img src="/assets/${url}" alt="Screenshot">
+                </div>`;
+        }).join('\n') : '';
+
         // Create project page using template
         const projectTemplate = fs.readFileSync(path.join(templateDir, 'project.html'), 'utf8');
         const finalProjectHTML = replaceVariables(projectTemplate, {
-            title: path.basename(file, '.md'),
-            content: projectHTML,
+            title: frontmatter.title || '',
+            title_block: frontmatter.title ? `<h1>${frontmatter.title}</h1>` : '',
+            release_block: frontmatter.release_data ? `<div class="release-date">Released: ${frontmatter.release_data}</div>` : '',
+            store_block: frontmatter.store ? `<div class="store-links"><div class="store-links-wrapper">${
+                markdown.convert(frontmatter.store.join(' ').replace(/\!\[\]\((.*?\.png)\)/g, '![](/assets/$1)'))
+            }</div></div>` : '',
+            description_block: frontmatter.description ? `<div class="description">${frontmatter.description}</div>` : '',
+            media_block: mediaHTML ? `<div class="projects-grid">${mediaHTML}</div>` : '',
             header: headerHTML,
             footer: footerTemplate
         });
@@ -161,6 +229,14 @@ function build() {
                 path.join(outputDir, 'assets', file)
             );
         });
+
+        // Ensure modal.js is copied
+        if (fs.existsSync(path.join(assetsDir, 'modal.js'))) {
+            fs.copyFileSync(
+                path.join(assetsDir, 'modal.js'),
+                path.join(outputDir, 'assets', 'modal.js')
+            );
+        }
     }
 
     console.log('Build completed successfully!');
