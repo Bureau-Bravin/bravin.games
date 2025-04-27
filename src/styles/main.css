@@ -66,14 +66,14 @@ h2 {
     font-weight: 700;
 }
 
-.project-list {
+.games-list {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-around;
     padding: 20px;
 }
 
-.project-list div {
+.games-list div {
     background: #2d3235;
     border: 1px solid #ddd;
     border-radius: 5px;
@@ -96,26 +96,26 @@ footer {
     text-shadow: 0 0 5px rgba(243, 231, 210, 0.3);
 }
 
-.projects {
+.games {
     background-color: #212426;
     width: 100%;
+    margin-bottom: 5rem;
 }
 
-.projects-content {
+.games-content {
     max-width: 960px;
     margin: 0 auto;
-    padding-top: 1rem;
-    padding-bottom: 2rem;
+    padding: 0 20px;
 }
 
-.projects h1, .about h1 {
+.games h1, .about h1 {
     font-size: 2.5rem;
     margin-bottom: 2rem;
     text-align: center;
     text-shadow: 0 0 5px rgba(243, 231, 210, 0.3);
 }
 
-.projects h1 {
+.games h1 {
     color: #F3E7D2;
 }
 
@@ -124,15 +124,15 @@ footer {
     text-shadow: 0 0 5px rgba(33, 36, 38, 0.3);
 }
 
-.projects-grid {
+.games-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    padding: 0;
-    background-color: #212426;
+    gap: 20px;
+    max-width: 960px;
+    margin: 0 auto;
 }
 
-.project {
+.game {
     position: relative;
     aspect-ratio: 16/9;
     border-radius: 8px;
@@ -141,22 +141,22 @@ footer {
     transition: transform 0.2s ease;
 }
 
-.project:hover {
+.game:hover {
     transform: translateY(-4px);
 }
 
-.project a {
+.game a {
     display: block;
     height: 100%;
 }
 
-.project img {
+.game img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.project h2 {
+.game h2 {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -168,64 +168,63 @@ footer {
     text-shadow: 0 0 5px rgba(243, 231, 210, 0.3);
 }
 
-.project iframe {
+.game iframe {
     pointer-events: none;
 }
 
-.project-content {
+.game-content {
     max-width: 960px;
-    margin: 2rem auto;
-    padding: 0 1rem;
+    margin: 0 auto;
     color: #F3E7D2;
 }
 
-.project-content h1 {
+.game-content h1 {
     font-size: 2.5rem;
     margin-bottom: 2rem;
     color: #F3E7D2;
     text-shadow: 0 0 5px rgba(243, 231, 210, 0.3);
 }
 
-.project-content h2 {
+.game-content h2 {
     font-size: 2rem;
     margin-top: 2rem;
     color: #F3E7D2;
     text-shadow: 0 0 5px rgba(243, 231, 210, 0.3);
 }
 
-.project-content h3 {
+.game-content h3 {
     font-size: 1.5rem;
     margin-top: 1.5rem;
     color: #F3E7D2;
     text-shadow: 0 0 5px rgba(243, 231, 210, 0.3);
 }
 
-.project-content p {
+.game-content p {
     font-size: 1.2rem;
     line-height: 1.6;
     color: #F3E7D2;
     text-shadow: 0 0 5px rgba(243, 231, 210, 0.3);
 }
 
-.project-content ul {
+.game-content ul {
     font-size: 1.2rem;
     line-height: 1.6;
     color: #F3E7D2;
     text-shadow: 0 0 5px rgba(243, 231, 210, 0.3);
 }
 
-.project-content a {
+.game-content a {
     color: #F3E7D2;
 }
 
-.project-content .release-date {
+.game-content .release-date {
     font-size: 1.2rem;
     color: #F3E7D2;
     margin-bottom: 2rem;
     text-shadow: 0 0 5px rgba(243, 231, 210, 0.3);
 }
 
-.project-content .description {
+.game-content .description {
     font-size: 1.2rem;
     line-height: 1.6;
     color: #F3E7D2;
@@ -233,11 +232,15 @@ footer {
     text-shadow: 0 0 5px rgba(243, 231, 210, 0.3);
 }
 
-.project-content .projects-grid {
-    margin-top: 2rem;
+.game-content .games-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 40px;
+    max-width: 960px;
 }
 
-.project-content .project iframe {
+.game-content .game iframe {
     width: 100%;
     height: 100%;
     position: absolute;
@@ -362,7 +365,7 @@ footer {
     margin: auto;
     display: block;
     width: 90%;
-    max-width: 1200px;
+    max-width: 960px;
     position: relative;
     top: 50%;
     transform: translateY(-50%);
@@ -388,12 +391,12 @@ footer {
     cursor: pointer;
 }
 
-.project-header {
+.game-header {
     text-align: center;
     margin-bottom: 3rem;
 }
 
-.project-header h1 {
+.game-header h1 {
     margin-bottom: 1rem;
 }
 
@@ -441,25 +444,6 @@ footer {
     justify-content: center;
 }
 
-.store-links img {
-    height: 40px;
-    width: auto;
-    padding: 0 10px;
-    transition: transform 0.2s ease, opacity 0.2s ease;
-    filter: brightness(0) saturate(100%) invert(45%) sepia(41%) saturate(2189%) hue-rotate(332deg) brightness(95%) contrast(95%);
-}
-
-.store-links p {
-    margin: 0;
-    display: flex;
-    gap: 1rem;
-}
-
-.store-links-wrapper {
-    display: inline-flex;
-    gap: 2rem;
-}
-
 .store-links-wrapper p {
     margin: 0;
     display: flex;
@@ -467,23 +451,29 @@ footer {
 }
 
 @media (max-width: 1024px) {
-    .projects-grid {
+    .games-grid,
+    .game-content .games-grid,
+    #games-content .games-grid,
+    .media-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (max-width: 640px) {
-    .projects-grid {
+    .games-grid,
+    .game-content .games-grid,
+    #games-content .games-grid,
+    .media-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
     }
 
-    .about-content, .projects-content {
+    .about-content, .games-content {
         width: 100%;
         padding: 1rem;
     }
 
-    .project {
+    .game {
         width: 100%;
     }
 
@@ -495,20 +485,20 @@ footer {
 }
 
 @media (max-width: 430px) {
-    .projects-grid {
+    .games-grid {
         grid-template-columns: 1fr;
         margin: 0;
         width: 100%;
         max-width: 430px;
     }
 
-    .about, .projects {
+    .about, .games {
         padding: 1rem;
         max-width: 430px;
         margin: 0 auto;
     }
 
-    .project {
+    .game {
         width: 100%;
         max-width: 400px;
         margin: 0 auto;
@@ -529,7 +519,6 @@ footer {
 /* Section content */
 section {
     width: 100%;
-    padding: 1.5rem 1rem;
 }
 
 section div {
@@ -560,21 +549,22 @@ section h1 {
     font-size: 1.2rem;
 }
 
-#games-content .projects-grid {
+#games-content .games-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    padding: 0;
+    gap: 20px;
+    max-width: 960px;
+    margin: 0 auto;
 }
 
 @media (max-width: 1024px) {
-    #games-content .projects-grid {
+    #games-content .games-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (max-width: 640px) {
-    #games-content .projects-grid {
+    #games-content .games-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
     }
@@ -582,4 +572,78 @@ section h1 {
     section {
         padding: 2rem 1rem;
     }
+}
+
+.game {
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.game:hover {
+    transform: translateY(-5px);
+}
+
+.game img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.game-content {
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+.game-header {
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.game-header h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.media-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.media-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.media-overlay:hover {
+    opacity: 1;
+}
+
+.media-overlay::after {
+    content: "View";
+    color: white;
+    font-size: 24px;
+    padding: 10px 20px;
+    border: 2px solid white;
+    border-radius: 5px;
+}
+
+.media-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    max-width: 960px;
+    margin: 40px auto 0;
 }

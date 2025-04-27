@@ -94,7 +94,7 @@ function build() {
     const headerHTML = fs.readFileSync(path.join(templateDir, 'header.html'), 'utf8');
     const footerTemplate = fs.readFileSync(path.join(templateDir, 'footer.html'), 'utf8');
     const menuTemplate = fs.readFileSync(path.join(templateDir, 'menu.html'), 'utf8');
-    const projectTemplate = fs.readFileSync(path.join(templateDir, 'project.html'), 'utf8');
+    const gameTemplate = fs.readFileSync(path.join(templateDir, 'game.html'), 'utf8');
     
     // Read the index.md file to extract sections and content
     const indexMdPath = path.join(contentDir, 'index.md');
@@ -168,15 +168,15 @@ function build() {
             }
         } else if (id === 'games') {
             // Process project files for Games section
-            const projectsDir = path.join(contentDir, 'projects');
-            let projectsHTML = `<h1>${title}</h1>`;
+            const gamesDir = path.join(contentDir, 'games');
+            let gamesHTML = `<h1>${title}</h1>`;
             
-            if (fs.existsSync(projectsDir)) {
-                const projectFiles = fs.readdirSync(projectsDir);
+            if (fs.existsSync(gamesDir)) {
+                const gameFiles = fs.readdirSync(gamesDir);
                 
-                const projectGridHTML = projectFiles.map(file => {
-                    const projectContent = fs.readFileSync(path.join(projectsDir, file), 'utf-8');
-                    const normalizedContent = projectContent.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
+                const gameGridHTML = gameFiles.map(file => {
+                    const gameContent = fs.readFileSync(path.join(gamesDir, file), 'utf-8');
+                    const normalizedContent = gameContent.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
                     
                     // Parse frontmatter
                     const frontmatterRegex = /^---[\r\n]+([\s\S]*?)[\r\n]+---/;
@@ -205,23 +205,23 @@ function build() {
                         return acc;
                     }, {}) : {};
 
-                    const projectName = path.basename(file, '.md');
+                    const gameName = path.basename(file, '.md');
                     return `
-                        <div class="project">
-                            <a href="/projects/${projectName}/">
-                                <img src="/assets/${frontmatter.preview_image}" alt="${projectName}">
+                        <div class="game">
+                            <a href="/games/${gameName}/">
+                                <img src="/assets/${frontmatter.preview_image}" alt="${gameName}">
                             </a>
                         </div>
                     `;
                 }).join('\n');
                 
-                projectsHTML += `<div class="projects-grid">${projectGridHTML}</div>`;
+                gamesHTML += `<div class="games-grid">${gameGridHTML}</div>`;
             }
             
             sections.push({
                 id,
                 background,
-                content: projectsHTML
+                content: gamesHTML
             });
         } else {
             // For other sections, just convert markdown to HTML
@@ -258,17 +258,17 @@ function build() {
     
     fs.writeFileSync(path.join(outputDir, 'index.html'), finalIndexHTML);
     
-    // Process project pages
-    const projectsDir = path.join(contentDir, 'projects');
-    if (fs.existsSync(projectsDir)) {
-        const projectFiles = fs.readdirSync(projectsDir);
+    // Process project files
+    const gamesDir = path.join(contentDir, 'games');
+    if (fs.existsSync(gamesDir)) {
+        const gameFiles = fs.readdirSync(gamesDir);
         
-        // Generate project pages
-        projectFiles.forEach(file => {
-            if (!file.endsWith('.md')) return;
+        gameFiles.forEach(file => {
+            const gameName = path.basename(file, '.md');
             
-            const projectContent = fs.readFileSync(path.join(projectsDir, file), 'utf-8');
-            const normalizedContent = projectContent.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
+            // Read and parse project content
+            const gameContent = fs.readFileSync(path.join(gamesDir, file), 'utf-8');
+            const normalizedContent = gameContent.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
             
             // Parse frontmatter
             const frontmatterRegex = /^---[\r\n]+([\s\S]*?)[\r\n]+---/;
@@ -295,51 +295,64 @@ function build() {
                 return acc;
             }, {}) : {};
 
-            // Generate media HTML if media exists
-            const mediaHTML = frontmatter.media ? frontmatter.media.map((url, index) => {
+            const mediaItems = Array.isArray(frontmatter.media) ? frontmatter.media : [];
+            let mediaHTML = '';
+            
+            mediaItems.forEach(url => {
                 if (url.includes('youtube.com')) {
-                    return `
-                        <div class="project media-item">
+                    mediaHTML += `
+                        <div class="game media-item">
                             <div class="media-overlay" data-media-type="video" data-media-url="${url.replace('watch?v=', 'embed/')}"></div>
                             <iframe src="${url.replace('watch?v=', 'embed/')}" frameborder="0" allowfullscreen></iframe>
                         </div>`;
+                } else {
+                    mediaHTML += `
+                        <div class="game media-item">
+                            <div class="media-overlay" data-media-type="image" data-media-url="/assets/${url}"></div>
+                            <img src="/assets/${url}" alt="Screenshot">
+                        </div>`;
                 }
-                return `
-                    <div class="project media-item">
-                        <div class="media-overlay" data-media-type="image" data-media-url="/assets/${url}"></div>
-                        <img src="/assets/${url}" alt="Screenshot">
-                    </div>`;
-            }).join('\n') : '';
-
-            // Create project page using template
-            const finalProjectHTML = replaceVariables(projectTemplate, {
-                title: frontmatter.title || '',
-                title_block: frontmatter.title ? `<h1>${frontmatter.title}</h1>` : '',
-                release_block: frontmatter.release_data ? `<div class="release-date">Released: ${frontmatter.release_data}</div>` : '',
-                store_block: frontmatter.store ? `<div class="store-links-wrapper">${
-                    markdown.convert(frontmatter.store.join(' ').replace(/\!\[\]\((.*?\.png)\)/g, '![](/assets/$1)'))
-                }</div>` : '',
-                description_block: frontmatter.description ? `<div class="description">${frontmatter.description}</div>` : '',
-                media_block: mediaHTML ? `<div class="projects-grid">${mediaHTML}</div>` : '',
-                header: headerHTML,
-                footer: footerTemplate,
-                menu: menuTemplate.replace(/{{#if isProject}}(.*?){{\/if}}/g, '$1')
             });
-
-            // Create projects directory if it doesn't exist
-            const projectsOutputDir = path.join(outputDir, 'projects');
-            if (!fs.existsSync(projectsOutputDir)) {
-                fs.mkdirSync(projectsOutputDir, { recursive: true });
+            
+            const storeLinks = Array.isArray(frontmatter.store) ? frontmatter.store : [];
+            let storeLinksHTML = '';
+            
+            if (storeLinks.length > 0) {
+                // Fix image references to ensure they point to assets directory
+                const fixedStoreLinks = storeLinks.map(store => 
+                    store.replace(/!\[\]\(([^\/].*?\.png)\)/g, '![](/assets/$1)')
+                ).join(' ');
+                
+                storeLinksHTML = `<div class="store-links-wrapper">${markdown.convert(fixedStoreLinks)}</div>`;
             }
-
-            // Write project page with clean URLs
-            const projectName = path.basename(file, '.md');
-            const projectOutputDir = path.join(projectsOutputDir, projectName);
-            if (!fs.existsSync(projectOutputDir)) {
-                fs.mkdirSync(projectOutputDir, { recursive: true });
+            
+            // Replace variables in project template
+            const gameHTML = replaceVariables(gameTemplate, {
+                title: frontmatter.title || gameName,
+                header: headerHTML,
+                menu: menuTemplate.replace(/{{#if isProject}}/g, '').replace(/{{\/if}}/g, ''),
+                title_block: frontmatter.title ? `<h1>${frontmatter.title}</h1>` : '',
+                release_block: frontmatter.release_data ? `<div class="release-date">Release date: ${frontmatter.release_data}</div>` : '',
+                store_block: storeLinksHTML,
+                description_block: frontmatter.description ? `<div class="description">${markdown.convert(frontmatter.description)}</div>` : '',
+                media_block: mediaHTML ? `<div class="media-grid games-grid">${mediaHTML}</div>` : '',
+                footer: footerTemplate
+            });
+            
+            // Create games directory if it doesn't exist
+            const gamesOutputDir = path.join(outputDir, 'games');
+            if (!fs.existsSync(gamesOutputDir)) {
+                fs.mkdirSync(gamesOutputDir, { recursive: true });
             }
-            const outputFile = path.join(projectOutputDir, 'index.html');
-            fs.writeFileSync(outputFile, finalProjectHTML);
+            
+            // Create project-specific directory
+            const gameOutputDir = path.join(gamesOutputDir, gameName);
+            if (!fs.existsSync(gameOutputDir)) {
+                fs.mkdirSync(gameOutputDir, { recursive: true });
+            }
+            
+            // Write project HTML file
+            fs.writeFileSync(path.join(gameOutputDir, 'index.html'), gameHTML);
         });
     }
     
