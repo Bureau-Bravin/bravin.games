@@ -15,24 +15,13 @@
     </header>
     {{menu}}
     <main>
-        <section id="about" class="about">
-            <div class="about-content">
-                {{about}}
+        {{#each sections}}
+        <section id="{{this.id}}" class="{{this.id}} {{this.background}}">
+            <div class="{{this.id}}-content">
+                {{this.content}}
             </div>
         </section>
-        <section id="games" class="projects">
-            <div class="projects-content">
-                <h1>Games</h1>
-                <div class="projects-grid">
-                    {{projects}}
-                </div>
-            </div>
-        </section>
-        <section id="contacts" class="contacts">
-            <div class="contacts-content">
-                {{contacts}}
-            </div>
-        </section>
+        {{/each}}
     </main>
     <footer>
         <p>&copy; 2023 Game Studio. All rights reserved.</p>

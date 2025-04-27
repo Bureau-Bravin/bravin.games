@@ -96,137 +96,177 @@ function build() {
     const menuTemplate = fs.readFileSync(path.join(templateDir, 'menu.html'), 'utf8');
     const projectTemplate = fs.readFileSync(path.join(templateDir, 'project.html'), 'utf8');
     
-    // Process all markdown files in the content directory
-    const mainContentFiles = [];
-    const specialPageFiles = [];
+    // Read the index.md file to extract sections and content
+    const indexMdPath = path.join(contentDir, 'index.md');
+    const indexMdContent = fs.readFileSync(indexMdPath, 'utf-8');
     
-    // Read all markdown files in the content directory
-    fs.readdirSync(contentDir).forEach(file => {
-        if (!file.endsWith('.md')) return; // Skip non-markdown files
+    // Parse frontmatter from index.md
+    const frontmatterRegex = /^---[\r\n]+([\s\S]*?)[\r\n]+---/;
+    const match = indexMdContent.match(frontmatterRegex);
+    let frontmatter = {};
+    let markdownContent = indexMdContent;
+    
+    if (match) {
+        // Simple key-value parsing for the title
+        frontmatter = match[1].split('\n').reduce((acc, line) => {
+            line = line.trim();
+            if (!line) return acc;
+            
+            // Handle key-value pairs
+            const colonIndex = line.indexOf(':');
+            if (colonIndex !== -1) {
+                const key = line.slice(0, colonIndex).trim();
+                const value = line.slice(colonIndex + 1).trim();
+                acc[key] = value.replace(/^["'](.*)["']$/, '$1');
+            }
+            return acc;
+        }, {});
         
-        const content = fs.readFileSync(path.join(contentDir, file), 'utf-8');
+        // Get content after frontmatter
+        markdownContent = indexMdContent.replace(frontmatterRegex, '');
+    }
+    
+    // Split content by H1 headers to get section content
+    const sectionRegex = /(^|\n)# ([^\n]+)([^\n]*(?:\n(?!# )[^\n]*)*)/g;
+    const sections = [];
+    let match2;
+    
+    // No more section backgrounds from frontmatter - will alternate automatically
+    
+    while ((match2 = sectionRegex.exec(markdownContent)) !== null) {
+        const title = match2[2].trim();
+        const content = match2[3].trim();
         
-        // Parse frontmatter
-        const frontmatterRegex = /^---[\r\n]+([\s\S]*?)[\r\n]+---/;
-        const match = content.match(frontmatterRegex);
-        let frontmatter = {};
-        let markdownContent = content;
+        // Convert the title to an id (lowercase, spaces to dashes)
+        const id = title.toLowerCase().replace(/\s+us$/i, '').replace(/\s+/g, '');
         
-        if (match) {
-            frontmatter = match[1].split('\n').reduce((acc, line) => {
-                line = line.trim();
-                if (!line) return acc;
+        // Alternate background based on position in sections array
+        const background = sections.length % 2 === 0 ? 'light' : 'dark';
+        
+        // Handle contacts section specially if it has frontmatter
+        if (id === 'contacts' && content.includes('---\ncontacts:')) {
+            const contactsMatch = content.match(/---\s*\ncontacts:\s*([\s\S]*?)\s*\n---/);
+            if (contactsMatch) {
+                const contactsList = contactsMatch[1]
+                    .split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line.startsWith('- '))
+                    .map(line => line.slice(2));
                 
-                if (line.startsWith('-')) {
-                    // Handle array items
-                    const value = line.slice(1).trim();
-                    const lastKey = Object.keys(acc).pop();
-                    if (!acc[lastKey]) {
-                        acc[lastKey] = [];
-                    }
-                    acc[lastKey].push(value);
-                } else {
-                    // Handle key-value pairs
-                    const colonIndex = line.indexOf(':');
-                    if (colonIndex !== -1) {
-                        const key = line.slice(0, colonIndex).trim();
-                        const value = line.slice(colonIndex + 1).trim();
-                        acc[key] = value.replace(/^["'](.*)["']$/, '$1');
-                    }
-                }
-                return acc;
-            }, {});
+                const contactsHtml = `<h1>${title}</h1>
+                    <div class="store-links">
+                        <div class="store-links-wrapper">
+                            ${markdown.convert(contactsList.join(' ')).replace(/src="([^\/].*?\.png)"/g, 'src="/assets/$1"')}
+                        </div>
+                    </div>`;
+                
+                sections.push({
+                    id,
+                    background,
+                    content: contactsHtml
+                });
+            }
+        } else if (id === 'games') {
+            // Process project files for Games section
+            const projectsDir = path.join(contentDir, 'projects');
+            let projectsHTML = `<h1>${title}</h1>`;
             
-            // Get content after frontmatter
-            markdownContent = content.replace(frontmatterRegex, '');
-        }
-        
-        const htmlContent = markdown.convert(markdownContent);
-        
-        // Categorize files
-        if (frontmatter.permalink) {
-            specialPageFiles.push({
-                file,
-                frontmatter,
-                htmlContent
-            });
-        } else if (file === 'about.md') {
-            mainContentFiles.push({
-                id: 'about',
-                htmlContent
-            });
-        } else if (file === 'contacts.md') {
-            // Handle contacts with social links
-            const socialLinksBlock = frontmatter.contacts ? 
-                `<div class="store-links"><div class="store-links-wrapper">${
-                    markdown.convert(frontmatter.contacts.join(' ').replace(/\!\[\]\((.*?\.png)\)/g, '![](/assets/$1)'))
-                }</div></div>` : '';
+            if (fs.existsSync(projectsDir)) {
+                const projectFiles = fs.readdirSync(projectsDir);
+                
+                const projectGridHTML = projectFiles.map(file => {
+                    const projectContent = fs.readFileSync(path.join(projectsDir, file), 'utf-8');
+                    const normalizedContent = projectContent.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
+                    
+                    // Parse frontmatter
+                    const frontmatterRegex = /^---[\r\n]+([\s\S]*?)[\r\n]+---/;
+                    const match = normalizedContent.match(frontmatterRegex);
+                    const frontmatter = match ? match[1].split('\n').reduce((acc, line) => {
+                        line = line.trim();
+                        if (!line) return acc;
+                        
+                        if (line.startsWith('-')) {
+                            // Handle array items
+                            const value = line.slice(1).trim();
+                            const lastKey = Object.keys(acc).pop();
+                            if (!acc[lastKey]) {
+                                acc[lastKey] = [];
+                            }
+                            acc[lastKey].push(value);
+                        } else {
+                            // Handle key-value pairs
+                            const colonIndex = line.indexOf(':');
+                            if (colonIndex !== -1) {
+                                const key = line.slice(0, colonIndex).trim();
+                                const value = line.slice(colonIndex + 1).trim();
+                                acc[key] = value.replace(/^["'](.*)["']$/, '$1');
+                            }
+                        }
+                        return acc;
+                    }, {}) : {};
+
+                    const projectName = path.basename(file, '.md');
+                    return `
+                        <div class="project">
+                            <a href="/projects/${projectName}/">
+                                <img src="/assets/${frontmatter.preview_image}" alt="${projectName}">
+                            </a>
+                        </div>
+                    `;
+                }).join('\n');
+                
+                projectsHTML += `<div class="projects-grid">${projectGridHTML}</div>`;
+            }
             
-            mainContentFiles.push({
-                id: 'contacts',
-                htmlContent: htmlContent + socialLinksBlock
+            sections.push({
+                id,
+                background,
+                content: projectsHTML
+            });
+        } else {
+            // For other sections, just convert markdown to HTML
+            sections.push({
+                id,
+                background,
+                content: `<h1>${title}</h1>${markdown.convert(content)}`
             });
         }
+    }
+    
+    // Build index page with sections
+    const indexHTML = replaceVariables(indexTemplate, {
+        title: frontmatter.title || 'Game Studio',
+        header: headerHTML,
+        menu: menuTemplate.replace(/{{#if isProject}}(.*?){{\/if}}/g, ''),
+        sections: JSON.stringify(sections)
+            .replace(/"content":"(.*?)"/g, function(match, p1) {
+                return `"content":${JSON.stringify(p1)}`;
+            })
     });
     
-    // Process project files
+    // Replace {{#each sections}}...{{/each}} with the actual section HTML
+    const eachSectionsRegex = /{{#each sections}}([\s\S]*?){{\/each}}/;
+    const sectionTemplate = indexHTML.match(eachSectionsRegex)[1];
+    const sectionsHTML = sections.map(section => {
+        return sectionTemplate
+            .replace(/{{this\.id}}/g, section.id)
+            .replace(/{{this\.background}}/g, section.background)
+            .replace(/{{this\.content}}/g, section.content);
+    }).join('\n');
+    
+    const finalIndexHTML = indexHTML.replace(eachSectionsRegex, sectionsHTML);
+    
+    fs.writeFileSync(path.join(outputDir, 'index.html'), finalIndexHTML);
+    
+    // Process project pages
     const projectsDir = path.join(contentDir, 'projects');
     if (fs.existsSync(projectsDir)) {
         const projectFiles = fs.readdirSync(projectsDir);
         
-        const projectsHTML = projectFiles.map(file => {
-            const projectContent = fs.readFileSync(path.join(projectsDir, file), 'utf-8');
-            
-            // Remove BOM and normalize line endings
-            const normalizedContent = projectContent.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
-            
-            // Parse frontmatter
-            const frontmatterRegex = /^---[\r\n]+([\s\S]*?)[\r\n]+---/;
-            const match = normalizedContent.match(frontmatterRegex);
-            
-            const frontmatter = match ? match[1].split('\n').reduce((acc, line) => {
-                line = line.trim();
-                
-                if (!line) return acc;
-                
-                if (line.startsWith('-')) {
-                    // Handle array items
-                    const value = line.slice(1).trim();
-                    const lastKey = Object.keys(acc).pop();
-                    if (!acc[lastKey]) {
-                        acc[lastKey] = [];
-                    }
-                    acc[lastKey].push(value);
-                } else {
-                    // Handle key-value pairs
-                    const colonIndex = line.indexOf(':');
-                    if (colonIndex !== -1) {
-                        const key = line.slice(0, colonIndex).trim();
-                        const value = line.slice(colonIndex + 1).trim();
-                        // Remove quotes if they exist
-                        acc[key] = value.replace(/^["'](.*)["']$/, '$1');
-                    }
-                }
-                return acc;
-            }, {}) : {};
-
-            const projectName = path.basename(file, '.md');
-            return `
-                <div class="project">
-                    <a href="/projects/${projectName}/">
-                        <img src="/assets/${frontmatter.preview_image}" alt="${projectName}">
-                    </a>
-                </div>
-            `;
-        }).join('\n');
-
-        mainContentFiles.push({
-            id: 'projects',
-            htmlContent: projectsHTML
-        });
-        
         // Generate project pages
         projectFiles.forEach(file => {
+            if (!file.endsWith('.md')) return;
+            
             const projectContent = fs.readFileSync(path.join(projectsDir, file), 'utf-8');
             const normalizedContent = projectContent.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
             
@@ -303,23 +343,60 @@ function build() {
         });
     }
     
-    // Build main index page
-    const mainContent = {};
-    mainContentFiles.forEach(item => {
-        mainContent[item.id] = item.htmlContent;
-    });
+    // Process special pages with permalinks
+    const specialPageFiles = [];
     
-    // Build index page
-    const indexHTML = replaceVariables(indexTemplate, {
-        title: 'Game Studio',
-        header: headerHTML,
-        about: mainContent.about || '',
-        projects: mainContent.projects || '',
-        contacts: mainContent.contacts || '',
-        menu: menuTemplate.replace(/{{#if isProject}}(.*?){{\/if}}/g, '')
+    // Read markdown files for special pages
+    fs.readdirSync(contentDir).forEach(file => {
+        if (!file.endsWith('.md') || file === 'index.md') return; // Skip index.md and non-markdown files
+        
+        const content = fs.readFileSync(path.join(contentDir, file), 'utf-8');
+        
+        // Parse frontmatter
+        const frontmatterRegex = /^---[\r\n]+([\s\S]*?)[\r\n]+---/;
+        const match = content.match(frontmatterRegex);
+        let frontmatter = {};
+        let markdownContent = content;
+        
+        if (match) {
+            frontmatter = match[1].split('\n').reduce((acc, line) => {
+                line = line.trim();
+                if (!line) return acc;
+                
+                if (line.startsWith('-')) {
+                    // Handle array items
+                    const value = line.slice(1).trim();
+                    const lastKey = Object.keys(acc).pop();
+                    if (!acc[lastKey]) {
+                        acc[lastKey] = [];
+                    }
+                    acc[lastKey].push(value);
+                } else {
+                    // Handle key-value pairs
+                    const colonIndex = line.indexOf(':');
+                    if (colonIndex !== -1) {
+                        const key = line.slice(0, colonIndex).trim();
+                        const value = line.slice(colonIndex + 1).trim();
+                        acc[key] = value.replace(/^["'](.*)["']$/, '$1');
+                    }
+                }
+                return acc;
+            }, {});
+            
+            // Get content after frontmatter
+            markdownContent = content.replace(frontmatterRegex, '');
+        }
+        
+        const htmlContent = markdown.convert(markdownContent);
+        
+        if (frontmatter.permalink) {
+            specialPageFiles.push({
+                file,
+                frontmatter,
+                htmlContent
+            });
+        }
     });
-    
-    fs.writeFileSync(path.join(outputDir, 'index.html'), indexHTML);
     
     // Process special pages with permalinks
     specialPageFiles.forEach(({ file, frontmatter, htmlContent }) => {
