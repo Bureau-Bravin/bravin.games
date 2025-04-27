@@ -162,6 +162,7 @@ function build() {
 
     // Read header and footer templates
     const footerTemplate = fs.readFileSync(path.join(templateDir, 'footer.html'), 'utf8');
+    const menuTemplate = fs.readFileSync(path.join(templateDir, 'menu.html'), 'utf8');
 
     // When generating individual project pages
     projectFiles.forEach(file => {
@@ -221,7 +222,8 @@ function build() {
             description_block: frontmatter.description ? `<div class="description">${frontmatter.description}</div>` : '',
             media_block: mediaHTML ? `<div class="projects-grid">${mediaHTML}</div>` : '',
             header: headerHTML,
-            footer: footerTemplate
+            footer: footerTemplate,
+            menu: menuTemplate.replace(/{{#if isProject}}(.*?){{\/if}}/g, '$1')
         });
 
         // Create projects directory if it doesn't exist
@@ -241,7 +243,8 @@ function build() {
         header: headerHTML,
         about: aboutHTML,
         projects: projectsHTML,
-        contacts: contactsHTML
+        contacts: contactsHTML,
+        menu: menuTemplate.replace(/{{#if isProject}}(.*?){{\/if}}/g, '')
     });
 
     // Write final HTML
