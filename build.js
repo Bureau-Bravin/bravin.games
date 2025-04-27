@@ -66,6 +66,50 @@ function build() {
     const aboutContent = fs.readFileSync(path.join(contentDir, 'about.md'), 'utf-8');
     const aboutHTML = markdown.convert(aboutContent);
 
+    // Read and process the contacts section
+    const contactsContent = fs.readFileSync(path.join(contentDir, 'contacts.md'), 'utf-8');
+    
+    // Parse frontmatter from contacts.md
+    const contactsFrontmatterRegex = /^---[\r\n]+([\s\S]*?)[\r\n]+---/;
+    const contactsMatch = contactsContent.match(contactsFrontmatterRegex);
+    const contactsFrontmatter = contactsMatch ? contactsMatch[1].split('\n').reduce((acc, line) => {
+        line = line.trim();
+        
+        if (!line) return acc;
+        
+        if (line.startsWith('-')) {
+            // Handle array items
+            const value = line.slice(1).trim();
+            const lastKey = Object.keys(acc).pop();
+            if (!acc[lastKey]) {
+                acc[lastKey] = [];
+            }
+            acc[lastKey].push(value);
+        } else {
+            // Handle key-value pairs
+            const colonIndex = line.indexOf(':');
+            if (colonIndex !== -1) {
+                const key = line.slice(0, colonIndex).trim();
+                const value = line.slice(colonIndex + 1).trim();
+                // Remove quotes if they exist
+                acc[key] = value.replace(/^["'](.*)["']$/, '$1');
+            }
+        }
+        return acc;
+    }, {}) : {};
+    
+    // Get the markdown content after frontmatter
+    const contactsMarkdown = contactsContent.replace(contactsFrontmatterRegex, '');
+    
+    // Format social links similar to store_block
+    const socialLinksBlock = contactsFrontmatter.contacts ? 
+        `<div class="store-links"><div class="store-links-wrapper">${
+            markdown.convert(contactsFrontmatter.contacts.join(' ').replace(/\!\[\]\((.*?\.png)\)/g, '![](/assets/$1)'))
+        }</div></div>` : '';
+    
+    // Combine the markdown content with the social links
+    const contactsHTML = markdown.convert(contactsMarkdown) + socialLinksBlock;
+
     // Read and process project files
     const projectDir = path.join(contentDir, 'projects');
     const projectFiles = fs.readdirSync(projectDir);
@@ -196,7 +240,8 @@ function build() {
         title: 'Game Studio',
         header: headerHTML,
         about: aboutHTML,
-        projects: projectsHTML
+        projects: projectsHTML,
+        contacts: contactsHTML
     });
 
     // Write final HTML

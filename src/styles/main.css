@@ -127,7 +127,7 @@ footer {
 .projects-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
+    gap: 1rem;
     padding: 0;
     background-color: #212426;
 }
@@ -299,6 +299,54 @@ footer {
     text-shadow: 0 0 5px rgba(33, 36, 38, 0.3);
 }
 
+.contacts {
+    background-color: #F3E7D2;
+    width: 100%;
+}
+
+.contacts-content {
+    max-width: 960px;
+    margin: 0 auto;
+    padding-top: 1rem;
+    padding-bottom: 2rem;
+    color: #212426;
+    font-size: 1.2rem;
+}
+
+.contacts-content h1 {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    color: #212426;
+    text-shadow: 0 0 5px rgba(33, 36, 38, 0.3);
+}
+
+.contacts p {
+    text-shadow: 0 0 5px rgba(33, 36, 38, 0.3);
+}
+
+.contacts-content .store-links i {
+    color: #212426;
+    padding: 0 10px;
+}
+
+.contacts-content .store-links img {
+    height: 32px;
+    width: auto;
+    padding: 0 10px;
+    filter: brightness(0) saturate(100%) invert(45%) sepia(41%) saturate(2189%) hue-rotate(332deg) brightness(95%) contrast(95%);
+    opacity: 0.8;
+}
+
+.contacts-content .store-links a:hover {
+    transform: translateY(-4px);
+    border-color: rgba(217, 78, 65, 1);
+}
+
+.contacts-content .store-links a:hover img {
+    opacity: 1;
+}
+
 .modal {
     display: none;
     position: fixed;
@@ -350,9 +398,41 @@ footer {
 }
 
 .store-links {
-    margin-top: 1.5rem;
     display: flex;
     justify-content: center;
+}
+
+.store-links p {
+    margin: 0;
+    display: flex;
+    gap: 1rem;
+}
+
+.store-links a {
+    display: inline-flex;
+    align-items: center;
+    transition: transform 0.2s ease;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 2px solid rgba(217, 78, 65, 0.6);
+}
+
+.store-links a:hover {
+    transform: translateY(-4px);
+    border-color: rgba(217, 78, 65, 1);
+}
+
+.store-links img {
+    height: 40px;
+    width: auto;
+    padding: 0 10px;
+    filter: brightness(0) saturate(100%) invert(45%) sepia(41%) saturate(2189%) hue-rotate(332deg) brightness(95%) contrast(95%);
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.store-links a:hover img {
+    opacity: 1;
 }
 
 .store-links-wrapper {
