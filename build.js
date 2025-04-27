@@ -68,6 +68,15 @@ class AssetManager {
             path.join(this.paths.outputDir, 'main.css')
         );
 
+        // Copy CNAME file
+        const cnamePath = path.join(__dirname, 'CNAME');
+        if (fs.existsSync(cnamePath)) {
+            fs.copyFileSync(
+                cnamePath,
+                path.join(this.paths.outputDir, 'CNAME')
+            );
+        }
+
         // Copy images
         const imagesDir = path.join(__dirname, 'src/images');
         if (fs.existsSync(imagesDir)) {
