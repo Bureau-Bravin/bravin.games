@@ -174,7 +174,8 @@ function build() {
             if (fs.existsSync(gamesDir)) {
                 const gameFiles = fs.readdirSync(gamesDir);
                 
-                const gameGridHTML = gameFiles.map(file => {
+                // Collect all game data first
+                const games = gameFiles.map(file => {
                     const gameContent = fs.readFileSync(path.join(gamesDir, file), 'utf-8');
                     const normalizedContent = gameContent.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
                     
@@ -206,10 +207,21 @@ function build() {
                     }, {}) : {};
 
                     const gameName = path.basename(file, '.md');
+                    return {
+                        name: gameName,
+                        frontmatter,
+                        order: parseInt(frontmatter.order) || Infinity // Use Infinity for games without order
+                    };
+                });
+
+                // Sort games by order parameter
+                games.sort((a, b) => a.order - b.order);
+
+                const gameGridHTML = games.map(game => {
                     return `
                         <div class="game">
-                            <a href="/games/${gameName}/">
-                                <img src="/assets/${frontmatter.preview_image}" alt="${gameName}">
+                            <a href="/games/${game.name}/">
+                                <img src="/assets/${game.frontmatter.preview_image}" alt="${game.name}">
                             </a>
                         </div>
                     `;

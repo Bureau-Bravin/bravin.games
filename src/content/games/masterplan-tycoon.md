@@ -16,4 +16,5 @@ media:
     - masterplan-tycoon_sc_6.jpg
     - masterplan-tycoon_sc_2.jpg
     - masterplan-tycoon_sc_7.jpg
+order: 1
 --- 
