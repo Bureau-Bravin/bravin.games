@@ -173,6 +173,7 @@ class ContentBuilder {
         const indexTemplate = fs.readFileSync(path.join(this.paths.templateDir, 'index.html'), 'utf-8');
         const headerHTML = fs.readFileSync(path.join(this.paths.templateDir, 'header.html'), 'utf8');
         const menuTemplate = fs.readFileSync(path.join(this.paths.templateDir, 'menu.html'), 'utf8');
+        const footerTemplate = fs.readFileSync(path.join(this.paths.templateDir, 'footer.html'), 'utf8');
         
         const indexMdPath = path.join(this.paths.contentDir, 'index.md');
         const indexMdContent = fs.readFileSync(indexMdPath, 'utf-8');
@@ -186,7 +187,8 @@ class ContentBuilder {
             header: headerHTML,
             menu: menuTemplate.replace(/{{#if isProject}}(.*?){{\/if}}/g, ''),
             sections: JSON.stringify(sections)
-                .replace(/"content":"(.*?)"/g, (match, p1) => `"content":${JSON.stringify(p1)}`)
+                .replace(/"content":"(.*?)"/g, (match, p1) => `"content":${JSON.stringify(p1)}`),
+            footer: footerTemplate
         });
         
         const eachSectionsRegex = /{{#each sections}}([\s\S]*?){{\/each}}/;
@@ -212,9 +214,14 @@ class ContentBuilder {
             const title = match[2].trim();
             const content = match[3].trim();
             const id = title.toLowerCase().replace(/\s+us$/i, '').replace(/\s+/g, '');
+            
+            // Skip footer section as it's handled separately
+            if (id === 'footer') {
+                continue;
+            }
+            
             const background = sections.length % 2 === 0 ? 'light' : 'dark';
-
-            if (id === 'contacts' && content.includes('---\ncontacts:')) {
+            if (id === 'follow' && content.includes('---\ncontacts:')) {
                 sections.push(this.processContactsSection(title, content, id, background));
             } else if (id === 'games') {
                 sections.push(this.processGamesSection(title, id, background));
@@ -284,6 +291,15 @@ class ContentBuilder {
             name: gameName,
             frontmatter,
             order: parseInt(frontmatter.order) || Infinity
+        };
+    }
+
+    processFooterSection(title, content, id, background) {
+        const footerContent = content.trim();
+        return {
+            id,
+            background,
+            content: `<footer><p>${markdown.convert(footerContent)}</p></footer>`
         };
     }
 
