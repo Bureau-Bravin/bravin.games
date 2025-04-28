@@ -568,9 +568,16 @@ footer {
         max-width: 430px;
     }
 
+    .about {
+        padding: 1rem;
+    }
+
+    .games {
+        padding: 1rem 1rem 4rem 1rem;
+    }
+
     .about, 
     .games {
-        padding: 1rem;
         max-width: 430px;
         margin: 0 auto;
     }
