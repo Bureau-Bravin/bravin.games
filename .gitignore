@@ -6,4 +6,3 @@ tmp
 .jekyll-cache
 .git
 node_modules/
-site/
